@@ -1,0 +1,6 @@
+==loop_variable.sh==
+Please notice line8: done<$x
+If you forget "<$x", the inner loop will never stop.
+
+==multi_files_variable_scope==
+Notice that variable "a" is defined in 3 files, but they seems to be pointed to one instance.
