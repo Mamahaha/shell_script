@@ -46,6 +46,37 @@ function conn_host() {
     fi
 }
 
+function scp_file() {
+    #sshpass -p 'password' scp user1@server1:/path/from/* user1@server2:/path/to/
+    remotep=$1
+    localp=$2
+    tag="from"
+    echo $remotep | grep -q ":"
+    if [[ $? != 0 ]]; then
+        remotep=$2
+        localp=$1
+        tag="to"
+    fi
+
+    OLD_IFS="$IFS"
+    IFS=":"
+    rpath=($remotep)
+    IFS="$OLD_IFS"
+    host=`sqlite3 $db "SELECT * FROM $t_hosts WHERE name='${rpath[0]}';"`
+    if [[ ! -n $host ]]; then
+        printf "\033[1m\033[33m%s\033[0m\n" "No such host exist: ${rpath[0]}"
+    else
+        OLD_IFS="$IFS"
+        IFS=$splitter
+        arr=($host)
+        IFS="$OLD_IFS"
+        if [[ $tag = "from" ]]; then
+            sshpass -p ${arr[3]} scp -o "ProxyCommand connect-proxy -S 127.0.0.1:9889 %h %p" -r ${arr[2]}@${arr[1]}:${rpath[1]} $localp
+        else
+            sshpass -p ${arr[3]} scp -o "ProxyCommand connect-proxy -S 127.0.0.1:9889 %h %p" -r $localp ${arr[2]}@${arr[1]}:${rpath[1]}
+        fi
+    fi 
+}
 
 #-------------------main function--------------------
 create_db
@@ -64,12 +95,17 @@ else
             printf "\033[1m\033[33m%s\033[0m\n" "Trying to logon to host manually"
             #sshpass -p $3 /usr/bin/ssh -o "ProxyCommand connect-proxy -S 127.0.0.1:9889 %h %p" $2;;
             /usr/bin/ssh -o "ProxyCommand connect-proxy -S 127.0.0.1:9889 %h %p " $2;;
+        "cp" )
+            printf "\033[1m\033[33m%s\033[0m\n" "Trying to copy file from/to remote"
+            scp_file $2 $3;;
         * )
             printf "\033[1m\033[31m%s\033[0m\n" "Usage:"
-            printf "\033[34m%s\n" " --Add a new host: > go a 200 10.175.183.200 root 12345678 \"ha ms node\""
-            printf " --Delete a host:  > go d 200\n"
-            printf " --Logon manually: > go to root@10.175.183.200 \n"
-            printf "%s\033[0m\n" " --Logon to host:  > go 200"
+            printf "\033[34m%s\n" " --Add a new host:          > go a 200 10.175.183.200 root 12345678 \"ha ms node\""
+            printf " --Delete a host:           > go d 200\n"
+            printf " --Logon manually:          > go to root@10.175.183.200 \n"
+            printf " --Copy file from remote:   > go cp 200:~/a.txt ~/b.txt\n"
+            printf " --Copy file to remote:     > go cp ~/b.txt 200:~/a.txt\n"
+            printf "%s\033[0m\n" " --Logon to host:           > go 200"
             show_hosts;;
     esac
 fi
