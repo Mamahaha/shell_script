@@ -81,22 +81,22 @@ function scp_file() {
 #-------------------main function--------------------
 create_db
 if [[ $# = 1 ]]; then
-    printf "\033[1m\033[33m%s\033[0m\n" "Trying to logon to host"
+    printf "\033[1m\033[33m%s\033[0m\n" "Trying to logon to host $1"
     conn_host $1
 else
     case "$1" in
         "a" )
-            printf "\033[1m\033[33m%s\033[0m\n" "Trying to add a new host into database"
+            printf "\033[1m\033[33m%s\033[0m\n" "Trying to add a new host $4@$3 into database"
             add_host $2 $3 $4 $5 "$6";;
         "d" )
-            printf "\033[1m\033[33m%s\033[0m\n" "Trying to delete a host from database"
+            printf "\033[1m\033[33m%s\033[0m\n" "Trying to delete a host $2 from database"
             del_host $2;;
         "to" )
-            printf "\033[1m\033[33m%s\033[0m\n" "Trying to logon to host manually"
+            printf "\033[1m\033[33m%s\033[0m\n" "Trying to logon to host $2 manually"
             #sshpass -p $3 /usr/bin/ssh -o "ProxyCommand connect-proxy -S 127.0.0.1:9889 %h %p" $2;;
             /usr/bin/ssh -o "ProxyCommand connect-proxy -S 127.0.0.1:9889 %h %p " $2;;
         "cp" )
-            printf "\033[1m\033[33m%s\033[0m\n" "Trying to copy file from/to remote"
+            printf "\033[1m\033[33m%s\033[0m\n" "Trying to copy file $2 from/to $3"
             scp_file $2 $3;;
         * )
             printf "\033[1m\033[31m%s\033[0m\n" "Usage:"
@@ -108,4 +108,10 @@ else
             printf "%s\033[0m\n" " --Logon to host:           > go 200"
             show_hosts;;
     esac
+
+    if [[ $? = 0 ]];then
+        printf "\033[1m\033[37m%s\033[0m\n" "Successful!"
+    else
+        printf "\033[1m\033[37m%s\033[0m\n" "Failed!"
+    fi
 fi
