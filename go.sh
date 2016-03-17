@@ -19,7 +19,7 @@ function del_host() {
     sqlite3 $db "DELETE FROM $t_hosts WHERE name='$1';"
 }
 function show_hosts() {
-    printf "\033[1m\033[4m\033[36;40m%-15s\033[0m | \033[1m\033[4m\033[33;40m%-20s\033[0m | \033[1m\033[4m\033[32;40m%s\033[0m\n" "Key" "IP" "Description" 
+    printf "\033[1m\033[4m\033[36;40m%-15s\033[0m | \033[1m\033[4m\033[33;40m%-20s\033[0m | \033[1m\033[4m\033[33;40m%-10s\033[0m | \033[1m\033[4m\033[33;40m%-15s\033[0m | \033[1m\033[4m\033[32;40m%s\033[0m\n" "Key" "IP" "User" "Password" "Description" 
     str_names=`sqlite3 $db "SELECT name FROM $t_hosts;"`
     names=($str_names)
     for name in ${names[@]}
@@ -29,7 +29,7 @@ function show_hosts() {
         IFS=$splitter
         arr=($host)
         IFS="$OLD_IFS"
-        printf "\033[36m%-15s\033[0m | \033[33m%-20s\033[0m | \033[32m%s\033[0m\n" "${arr[0]}" "${arr[1]}" "${arr[4]}"
+        printf "\033[36m%-15s\033[0m | \033[33m%-20s\033[0m | \033[33m%-10s\033[0m | \033[33m%-15s\033[0m | \033[32m%s\033[0m\n" "${arr[0]}" "${arr[1]}" "${arr[2]}" "${arr[3]}" "${arr[4]}"
     done
 }
 
