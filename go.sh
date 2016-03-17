@@ -46,6 +46,19 @@ function conn_host() {
     fi
 }
 
+function conn_host2() {
+    host=`sqlite3 $db "SELECT * FROM $t_hosts WHERE name='$1';"`
+    if [[ ! -n $host ]]; then
+        printf "\033[1m\033[33m%s\033[0m\n" "No such host exist: $1"
+    else
+        OLD_IFS="$IFS"
+        IFS=$splitter
+        arr=($host)
+        IFS="$OLD_IFS"
+        sshpass -p ${arr[3]} /usr/bin/ssh ${arr[2]}@${arr[1]}
+    fi
+}
+
 function scp_file() {
     #sshpass -p 'password' scp user1@server1:/path/from/* user1@server2:/path/to/
     remotep=$1
@@ -91,6 +104,9 @@ else
         "d" )
             printf "\033[1m\033[33m%s\033[0m\n" "Trying to delete a host $2 from database"
             del_host $2;;
+        "e" )
+            printf "\033[1m\033[33m%s\033[0m\n" "Trying to logon to host $2 with no proxy"
+            conn_host2 $2;;
         "to" )
             printf "\033[1m\033[33m%s\033[0m\n" "Trying to logon to host $2 manually"
             #sshpass -p $3 /usr/bin/ssh -o "ProxyCommand connect-proxy -S 127.0.0.1:9889 %h %p" $2;;
@@ -100,12 +116,13 @@ else
             scp_file $2 $3;;
         * )
             printf "\033[1m\033[31m%s\033[0m\n" "Usage:"
-            printf "\033[34m%s\n" " --Add a new host:          > go a 200 10.175.183.200 root 12345678 \"ha ms node\""
-            printf " --Delete a host:           > go d 200\n"
-            printf " --Logon manually:          > go to root@10.175.183.200 \n"
-            printf " --Copy file from remote:   > go cp 200:~/a.txt ~/b.txt\n"
-            printf " --Copy file to remote:     > go cp ~/b.txt 200:~/a.txt\n"
-            printf "%s\033[0m\n" " --Logon to host:           > go 200"
+            printf "\033[34m%s\n" " --Add a new host:              > go a 200 10.175.183.200 root 12345678 \"ha ms node\""
+            printf " --Delete a host:               > go d 200\n"
+            printf " --Copy file from remote:       > go cp 200:~/a.txt ~/b.txt\n"
+            printf " --Copy file to remote:         > go cp ~/b.txt 200:~/a.txt\n"
+            printf " --Logon to host with no proxy: > go e 200\n"
+            printf " --Logon manually:              > go to root@10.175.183.200 \n"
+            printf "%s\033[0m\n" " --Logon to host:               > go 200"
             show_hosts;;
     esac
 
