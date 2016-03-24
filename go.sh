@@ -8,12 +8,12 @@ declare splitter="|"
 function create_db() {
     if [[ ! -f "$db" ]]; then
         printf "No db exists. Will create a new one\n"
-        sqlite3 $db "CREATE TABLE $t_hosts(name, ip, user, pswd, info);"
+        sqlite3 $db "CREATE TABLE $t_hosts(name, ip, user, pswd, info, level);"
         sqlite3 $db "CREATE INDEX hosts_index on $t_hosts(name);"
     fi
 }
 function add_host() {
-    sqlite3 $db "INSERT INTO $t_hosts VALUES('$1', '$2', '$3', '$4', '$5');"
+    sqlite3 $db "INSERT INTO $t_hosts VALUES('$1', '$2', '$3', '$4', '$5', '$6');"
 }
 function del_host() {
     sqlite3 $db "DELETE FROM $t_hosts WHERE name='$1';"
@@ -29,7 +29,11 @@ function show_hosts() {
         IFS=$splitter
         arr=($host)
         IFS="$OLD_IFS"
-        printf "\033[36m%-15s\033[0m | \033[33m%-20s\033[0m | \033[33m%-10s\033[0m | \033[33m%-15s\033[0m | \033[32m%s\033[0m\n" "${arr[0]}" "${arr[1]}" "${arr[2]}" "${arr[3]}" "${arr[4]}"
+        if [[ ${arr[5]} = 1 ]]; then
+            printf "\033[36m%-15s\033[0m | \033[33m%-20s\033[0m | \033[33m%-10s\033[0m | \033[33m%-15s\033[0m | \033[32m%s\033[0m\n" "${arr[0]}" "${arr[1]}" "${arr[2]}" "${arr[3]}" "${arr[4]}"
+        else
+            printf "\033[36m  %-13s\033[0m | \033[33m%-20s\033[0m | \033[33m%-10s\033[0m | \033[33m%-15s\033[0m | \033[32m%s\033[0m\n" "${arr[0]}" "${arr[1]}" "${arr[2]}" "${arr[3]}" "${arr[4]}"
+        fi
     done
 }
 
@@ -100,7 +104,7 @@ else
     case "$1" in
         "a" )
             printf "\033[1m\033[33m%s\033[0m\n" "Trying to add a new host $4@$3 into database"
-            add_host $2 $3 $4 $5 "$6";;
+            add_host $2 $3 $4 $5 "$6" $7;;
         "d" )
             printf "\033[1m\033[33m%s\033[0m\n" "Trying to delete a host $2 from database"
             del_host $2;;
@@ -116,7 +120,7 @@ else
             scp_file $2 $3;;
         * )
             printf "\033[1m\033[31m%s\033[0m\n" "Usage:"
-            printf "\033[34m%s\n" " --Add a new host:              > go a 200 10.175.183.200 root 12345678 \"ha ms node\""
+            printf "\033[34m%s\n" " --Add a new host:              > go a 200 10.175.183.200 root 12345678 \"ha ms node\" 1"
             printf " --Delete a host:               > go d 200\n"
             printf " --Copy file from remote:       > go cp 200:~/a.txt ~/b.txt\n"
             printf " --Copy file to remote:         > go cp ~/b.txt 200:~/a.txt\n"
